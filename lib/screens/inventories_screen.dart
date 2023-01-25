@@ -1,6 +1,9 @@
+import 'dart:developer';
+
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 
-import '../api/API.dart';
+import '../api/api.dart';
 import '../styles/inventories_screen_styles.dart';
 
 class InventoriesScreen extends StatefulWidget {
@@ -11,7 +14,8 @@ class InventoriesScreen extends StatefulWidget {
 }
 
 class _InventoriesScreenState extends State<InventoriesScreen> {
-  API instance = API();
+  Api instance = Api();
+  List<String> itemInfo = [];
   Map<String, int> warehouses = {
     "Atlanta": 10,
     "Dallas": 20,
@@ -20,17 +24,11 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
     "ONTARIO": 50,
     "OHIO 1": 60,
     "OHIO CEV": 70,
-    "In Stock Only": 80,
-    "In Stock Only All Items": 90,
-    "All Items On Water": 100,
   };
 
-  @override
-  void initState() {
-    // TODO: implement initState
-    super.initState();
-    setUpFilters();
-  }
+  List<Widget> widgets = [], tempWidgets = [];
+
+  final _controller = TextEditingController();
 
   List<Widget> getWarehouses(Map<String, int> warehouses) {
     List<Widget> warehousesCards = [];
@@ -42,17 +40,20 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
 
   List<Widget> getInventories(List<dynamic> elements) {
     List<Widget> inventories = [];
-    for (var element in elements) {
-      inventories.add(inventoryLayout(
-          element['ItemCode'],
-          element['Description'],
-          element['QtyOnHand'],
-          element['TotalIncoming'],
-          "30", "0")
-      );
-      inventories.add(const SizedBox(height: 10));
+    if (elements.isNotEmpty) {
+      for (var element in elements) {
+        inventories.add(
+          inventoryLayout(
+              element['ItemCode'].toString(),
+              element['Description'].toString(),
+              element['QtyOnHand'].toString(),
+              element['TotalIncoming'].toString(),
+              "30", "0"
+          ),
+        );
+        inventories.add(const SizedBox(height: 10));
+      }
     }
-    print("Get Inventories ${inventories.length}");
     return inventories;
   }
 
@@ -62,196 +63,227 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
         const SizedBox(width: 5),
         Expanded(
           flex: 6,
-          child: Text(warehouse),
+          child: Text(
+              warehouse,
+            style: const TextStyle(
+              fontSize: 12,
+            ),
+          ),
         ),
         const SizedBox(width: 5),
         Expanded(
           flex: 4,
-          child: Text(qty.toString()),
+          child: Text(
+            qty.toString(),
+            style: const TextStyle(
+              fontSize: 12,
+            ),
+          ),
         ),
       ],
     );
   }
 
-  void setUpFilters() async {
-    await instance.getFilters();
-  }
-
-  void setUpInventories(List<dynamic> args) async {
-    await instance.getInventories(args);
-    print("Setup Inventories: ${instance.inventories.length}");
-  }
-
-  Widget inventoryLayout(String itemCode, String itemDesc, String stockQty,
-      String totalIncome, String totalStock, String totalIncoming) {
+  Widget inventoryLayout(String itemCode, String itemDesc, String stockQty, String totalIncome, String totalStock, String totalIncoming) {
     return Container(
+      margin: const EdgeInsets.all(5),
       decoration: BoxDecoration(
+        color: const Color(0xFFF2F9FF),
         border: Border.all(
-          color: Colors.black,
-          width: 2,
+          color: const Color(0xFF0C3880),
+          width: 1,
         ),
-        borderRadius: BorderRadius.circular(5),
+        borderRadius: const BorderRadius.all(Radius.circular(5))
       ),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Padding(
-            padding: const EdgeInsets.only(left: 5),
-            child: Text(itemCode),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 5),
-            child: Text(itemDesc),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 5),
-            child: Text(stockQty),
-          ),
-          Padding(
-            padding: const EdgeInsets.only(left: 5),
-            child: Text(totalIncome),
-          ),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
-          IntrinsicHeight(
-            child: Container(
-              // padding: const EdgeInsets.symmetric(vertical: 5),
-              decoration: const BoxDecoration(
-                color: Colors.blue,
-              ),
-              child: Row(
-                children: const [
-                  SizedBox(width: 5),
-                  Expanded(
-                    flex: 6,
-                    child: Text(
-                      "WAREHOUSE",
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                  // SizedBox(width: 10),
-                  VerticalDivider(
-                    color: Colors.black,
-                    thickness: 1,
-                    width: 0,
-                  ),
-                  SizedBox(width: 5),
-                  Expanded(
-                    flex: 4,
-                    child: Text(
-                      "QTY",
-                      style: TextStyle(
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
-          SizedBox(
-            height: 65,
-            child: ListView(
-              physics: const BouncingScrollPhysics(),
-              shrinkWrap: true,
-              children: getWarehouses(warehouses),
-            ),
-          ),
           Container(
+            padding: const EdgeInsets.only(left: 5, right: 5),
             decoration: const BoxDecoration(
-              color: Color(0xffe1e1ff),
+                color: Color(0xFF0C3880),
+                borderRadius: BorderRadius.only(topRight: Radius.circular(5), topLeft: Radius.circular(5)),
             ),
-            child: Row(
+            child: Column(
               children: [
-                const SizedBox(width: 5),
-                const Expanded(
-                  flex: 6,
-                  child: Text("Total Stock"),
-                ),
-                const SizedBox(width: 5),
-                Expanded(
-                  flex: 4,
-                  child: Text(totalStock),
+                const SizedBox(height: 3),
+                Row(
+                  children: [
+                    Text(
+                      itemCode.toString(),
+                      style: const TextStyle(
+                        fontFamily: "poppins",
+                        fontSize: 15,
+                        fontWeight: FontWeight.w700,
+                        color: Colors.white
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
           ),
-          const SizedBox(height: 10),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
-          Container(
-            decoration: const BoxDecoration(
-              color: Colors.blue,
+          Padding(
+            padding: const EdgeInsets.only(left: 5, right: 5),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const SizedBox(height: 3),
+                Text(
+                  itemDesc.toString(),
+                  style: const TextStyle(
+                      fontFamily: "poppins",
+                      fontSize: 12,
+                      fontWeight: FontWeight.normal,
+                      color: Color(0xFF747474)
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                  children: [
+                    Text("Qty On Hand: ${stockQty.toString()}"),
+                    Text("Total Incoming: ${totalIncome.toString()}"),
+                  ],
+                ),
+                const SizedBox(height: 3),
+                const Divider(
+                  endIndent: 3,
+                  indent: 5,
+                )
+              ],
             ),
-            child: const Center(
-              child: Text(
-                "WAREHOUSE",
-                style: TextStyle(
-                  color: Colors.white,
+          ),
+          // const Divider(color: Colors.black, thickness: 1, height: 0),
+          Row(
+            children: const [
+              SizedBox(width: 5),
+              Expanded(
+                flex: 6,
+                child: Text(
+                  "WAREHOUSE",
+                  style: TextStyle(
+                    color: Color(0xFF438A98),
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    decoration: TextDecoration.underline
+                  ),
                 ),
               ),
+              // SizedBox(width: 10),
+              /*VerticalDivider(
+                color: Colors.black,
+                thickness: 2,
+                width: 0,
+              ),*/
+              SizedBox(width: 5),
+              Expanded(
+                flex: 4,
+                child: Text(
+                  "QTY",
+                  style: TextStyle(
+                      color: Color(0xFF438A98),
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                      decoration: TextDecoration.underline
+                  ),
+                ),
+              ),
+            ],
+          ),
+          // const Divider(color: Colors.black, thickness: 1, height: 0),
+          Column(
+            children: getWarehouses(warehouses),
+          ),
+          Row(
+            children: [
+              const SizedBox(width: 5),
+              const Expanded(
+                flex: 6,
+                child: Text(
+                  "TOTAL STOCK",
+                  style: TextStyle(
+                    color: Color(0xFF438A98),
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+              const SizedBox(width: 5),
+              Expanded(
+                flex: 4,
+                child: Text(
+                  totalStock,
+                  style: const TextStyle(
+                      color: Color(0xFF438A98),
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          const Divider(endIndent: 3, indent: 5, thickness: 0),
+          const Center(
+            child: Text(
+                "INCOMING BREAKUP",
+              style: TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold
+              ),
             ),
           ),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
-          IntrinsicHeight(
-            child: Container(
-              decoration: const BoxDecoration(
-                color: Colors.blue,
+          const Divider(endIndent: 3, indent: 5, thickness: 0),
+          const SizedBox(height: 10),
+          Row(
+            crossAxisAlignment: CrossAxisAlignment.center,
+            children: const [
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: Text(
+                    "PO#",
+                    style: TextStyle(
+                        color: Color(0xFFFF6600),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline
+                    ),
+                  ),
+                ),
               ),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                children: const [
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Text(
-                        "PO#",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
+              Expanded(
+                flex: 6,
+                child: Center(
+                  child: Text(
+                    "PO Date",
+                    style: TextStyle(
+                        color: Color(0xFFFF6600),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline
                     ),
                   ),
-                  VerticalDivider(
-                    color: Colors.black,
-                    thickness: 1,
-                    width: 0,
-                  ),
-                  Expanded(
-                    flex: 6,
-                    child: Center(
-                      child: Text(
-                        "PO Date",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                  VerticalDivider(
-                    color: Colors.black,
-                    thickness: 1,
-                    width: 0,
-                  ),
-                  Expanded(
-                    flex: 2,
-                    child: Center(
-                      child: Text(
-                        "QTY",
-                        style: TextStyle(
-                          color: Colors.white,
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+                ),
               ),
-            ),
+              Expanded(
+                flex: 2,
+                child: Center(
+                  child: Text(
+                    "QTY",
+                    style: TextStyle(
+                        color: Color(0xFFFF6600),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                        decoration: TextDecoration.underline
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
-          const Divider(color: Colors.black, thickness: 3, height: 0),
           const SizedBox(height: 80),
           Container(
             decoration: const BoxDecoration(
@@ -276,13 +308,19 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final arguments = (ModalRoute.of(context)?.settings.arguments ?? <List<int>>[]) as List;
-    List<Widget> widgets = [];
-    setUpInventories(arguments);
-    setState(() {
+    final arguments = (ModalRoute.of(context)?.settings.arguments ?? <String, dynamic>{}) as Map;
+    // List<Widget> widgets = [];
+    if(arguments.isNotEmpty) {
+      instance = arguments['instance'];
       widgets = getInventories(instance.inventories);
-    });
-    print("Arguments: ${arguments.length}");
+      // debugger();
+      int index = 0;
+      for (var element in instance.inventories) {
+        itemInfo.add("${element['ItemCode']} ${element['Description']},${index.toString()}");
+        index++;
+      }
+    }
+
 
     return Scaffold(
       appBar: AppBar(
@@ -290,36 +328,59 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
         actions: [
           IconButton(
             onPressed: () async {
-              Navigator.pushNamed(context, '/filters',
-                  arguments: {"instance": instance});
-              /*RoutingPage.goToNextPage(
-                context: context,
-                navigateTo: const FilterPanel(),
-              );*/
+              Navigator.pushReplacementNamed(context, '/inventoryFilters', arguments: {"instance": instance});
             },
             style: InventoriesScreenStyles.filtersButtonStyle,
-            icon: const Icon(Icons.filter_list),
+            icon: const Icon(Icons.filter_list)
           ),
         ],
+        backgroundColor: const Color(0xFF0061A6),
       ),
       body: Container(
+        decoration: const BoxDecoration(color: Colors.white),
         padding: const EdgeInsets.all(10),
         child: Column(
           children: [
-            const SizedBox(
+            SizedBox(
               height: 40,
-              child: TextField(
+              child: Text("No of results: ${(widgets.length/2).round().toString()}", style: InventoriesScreenStyles.defaultTextStyles),
+              /*TextField(
                 decoration: InputDecoration(
-                  prefixIcon: Icon(Icons.search),
-                  label: Text("Search"),
-                  border: OutlineInputBorder(
+                  prefixIcon: const Icon(Icons.search),
+                  label: const Text("Search"),
+                  border:const  OutlineInputBorder(
                       borderSide: BorderSide(color: Colors.black, width: 1),
                       borderRadius: BorderRadius.all(Radius.circular(5))),
+                  fillColor: Colors.white,
+                  filled: true,
+                  suffixIcon: IconButton(
+                    icon: const Icon(Icons.clear),
+                    onPressed: () {
+                      _controller.clear();
+                    },
+                  ),
                 ),
-                style: TextStyle(height: 1),
-              ),
+                style: const TextStyle(height: 1),
+                onSubmitted: (value) {
+                  List<Widget> newWidgets = [];
+                  if (itemInfo.isNotEmpty) {
+                    for (var element in itemInfo) {
+                      List<String> temp = element.split(',');
+                      if(temp[0].toLowerCase().contains(value.toLowerCase())) {
+                        int index = int.parse(temp[1]);
+                        newWidgets.add(widgets[index]);
+                      }
+                    }
+                    setState(() {
+                      widgets.clear();
+                      widgets.addAll(newWidgets);
+                    });
+                  }
+                },
+              )*/
             ),
             const SizedBox(height: 10),
+            widgets.isNotEmpty ? 
             Expanded(
               child: ListView(
                 shrinkWrap: true,
@@ -327,6 +388,8 @@ class _InventoriesScreenState extends State<InventoriesScreen> {
                 // children: getInventories(5),
                 children: widgets,
               ),
+            ) :
+            const Expanded(child: Center(child: Text("Nothing to show here."))
             )
           ],
         ),

@@ -1,11 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:hr_cotton/colors/app_colors.dart';
+import 'package:hr_cotton/api/storageSharedPrefrences.dart';
 import 'package:hr_cotton/screens/inventories_screen.dart';
 import 'package:hr_cotton/screens/login_screen.dart';
+import 'package:hr_cotton/screens/pdf_viewer_screen.dart';
+import 'package:hr_cotton/screens/po_list_screen.dart';
+import 'package:hr_cotton/screens/sales_invoices_screen.dart';
 import 'package:hr_cotton/svgs/svg_images.dart';
 import 'package:hr_cotton/widgets/custom_grid_tile.dart';
-import 'filters_screen.dart';
+import 'package:intl/intl.dart';
+import 'package:localstorage/localstorage.dart';
+import '404_Screen.dart';
+import 'customer_balance_screen.dart';
+import 'inventory_filters_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -15,14 +22,17 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> {
-  /*@override
+  final LocalStorage storage = LocalStorage('hr_cotton_app');
+
+  @override
   void initState() {
     super.initState();
+    print("Home Screen");
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
-      statusBarColor: Color(0xFFFAFAFA),
-      statusBarIconBrightness: Brightness.dark,
+      statusBarColor: Color(0xFF212224),
+      statusBarIconBrightness: Brightness.light,
     ));
-  }*/
+  }
 
   Widget buildAppBarOld() {
     return Container(
@@ -40,8 +50,8 @@ class _HomeScreenState extends State<HomeScreen> {
                 style: TextStyle(
                     color: Colors.white,
                     fontWeight: FontWeight.w900,
+                    fontFamily: "poppins",
                     fontSize: 17
-
                 ),
               ),
               const SizedBox(height: 10),
@@ -205,25 +215,87 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget buildAppBar() {
     return Container(
       decoration: const BoxDecoration(
-        color: Color(0xFF0061A6),
+        color: Color(0xFF0061A6), // 0xFF1F9978
         // borderRadius: BorderRadius.circular(10),
       ),
       child: Center(
         child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 25),
+          padding: const EdgeInsets.symmetric(vertical: 15, horizontal: 25),
           child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
-                "Dashboard",
-                style: TextStyle(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 22
-
-                ),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    "Dashboard",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                      fontFamily: "poppins",
+                    ),
+                  ),
+                  Text(
+                    "Last Login: ${DateFormat('dd-MM-yyyy hh:mm a').format(DateTime.now()).toString()}",
+                    style: const TextStyle(
+                      color: Color(0xFFC3C3C3),
+                      fontWeight: FontWeight.normal,
+                      fontSize: 11,
+                      fontFamily: "poppins",
+                    ),
+                  ),
+                ],
               ),
-              CircleAvatar(
+              /*IconButton(
+                onPressed: () {},
+                padding: EdgeInsets.zero,
+                color: Colors.black,
+                splashColor: Colors.white,
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Colors.white,
+                  size: 30,
+                ),
+                alignment: Alignment.centerRight,
+              ),*/
+              PopupMenuButton<int>(
+                position: PopupMenuPosition.under,
+                itemBuilder: (context) => [
+                    PopupMenuItem(
+                      value: 1,
+                      child: Row(
+                        children: const [
+                          Icon(Icons.logout),
+                          SizedBox(
+                            width: 10,
+                          ),
+                          Text("Logout"),
+                        ],
+                      ),
+                    ),
+                  ],
+                iconSize: 30,
+                // offset: const Offset(-25, 0),
+                icon: const Icon(
+                  Icons.more_vert,
+                  color: Colors.white,
+                ),
+                onSelected: (value) {
+                  if(value == 1) {
+                    Navigator.pushReplacementNamed(context, "/");
+                  }
+                },
+
+              ),
+            ],
+          )
+        ),
+      ),
+    );
+  }
+
+  /*CircleAvatar(
                 radius: 25,
                 child: Container(
                   decoration: const BoxDecoration(
@@ -237,85 +309,105 @@ class _HomeScreenState extends State<HomeScreen> {
                     shape: BoxShape.circle,
                   ),
                 ),
-              ),
-            ],
-          )
-        ),
-      ),
-    );
-  }
+              ),*/
 
   @override
   Widget build(BuildContext context) {
+    SPStorage.printIsLoggedIn("Home Screen");
+
     var tilesData = [
       {
-        "svgImage": SvgImages.warehouse,
+        "color": const Color(0xFFF0715E),
+        "svgImage": SvgImages.inventories,
         "title": "Inventories",
         "route": const InventoriesScreen(),
       },
       {
-        "svgImage": SvgImages.invoice,
-        "title": "Invoices",
-        "route": const FilterPanel(),
+        "color": const Color(0xFF1F9978),
+        "svgImage": SvgImages.customerCenter2,
+        "title": "Cust. Balance",
+        "route": const CustomerBalanceScreen(),
       },
       {
+        "color": const Color(0xFF344A5F),
+        "svgImage": SvgImages.invoice2,
+        "title": "Invoice List",
+        "route": const SaleInvoicesScreen(),
+      },
+      {
+        "color": const Color(0xFFFEB453),
+        "svgImage": SvgImages.customerPoList2,
+        "title": "PO List",
+        "route": const PoListScreen(),
+      },
+      /*{
         "svgImage": SvgImages.poList,
         "title": "PO Lists",
         "route": const FilterPanel(),
-      },
+      },*/
       {
-        "svgImage": SvgImages.customerPoList,
-        "title": "Customers\nPOs",
-        "route": const FilterPanel(),
-      },
-      {
-        "svgImage": SvgImages.customerCenter,
-        "title": "Customer\nCenter",
-        "route": const FilterPanel(),
-      },
-      {
-        "svgImage": SvgImages.logout,
+        "color": const Color(0xFF579ED6),
+        "svgImage": SvgImages.logout2,
         "title": "Logout",
-        "route": const LoginScreen(),
+        "route": const Text("Testing"),
       },
     ];
 
     return Scaffold(
+      backgroundColor: const Color(0xFF0061A6),
       body: Center(
         child: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.only(bottom: 15),
-            child: Container(
-              constraints: const BoxConstraints.expand(),
-              child: Column(
-                children: [
-                  buildAppBar(),
-                  const SizedBox(height: 20),
-                  ListView(
-                    shrinkWrap: true,
-                    physics: const BouncingScrollPhysics(),
-                    children: [
-                      GridView.builder(
+          child: Container(
+            constraints: const BoxConstraints.expand(),
+            child: Column(
+              children: [
+                buildAppBar(),
+                const SizedBox(height: 20),
+                Expanded(
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    decoration: const BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.only(topLeft: Radius.circular(20), topRight: Radius.circular(20)),
+                      boxShadow: [
+                        BoxShadow(
+                          offset: Offset(0, -3),
+                          spreadRadius: 3,
+                          blurRadius: 10,
+                          color: Colors.black12
+                        )
+                      ]
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 15),
+                      child: ListView(
                         shrinkWrap: true,
-                        primary: true,
-                        itemCount: tilesData.length,
-                        physics: const NeverScrollableScrollPhysics(),
-                        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                            childAspectRatio: MediaQuery.of(context).size.width / (MediaQuery.of(context).size.height / 2.2), // Change the height of the tiles
-                            crossAxisCount: 3,
-                        ),
-                        itemBuilder: (context, index) {
-                          return CustomGridTile(
-                            title: tilesData[index]['title'].toString(),
-                            svgImage: "assets${tilesData[index]['svgImage'].toString()}",
-                            route: tilesData[index]["route"] as Widget,
-                          );
-                        },
+                        physics: const BouncingScrollPhysics(),
+                        children: [
+                          GridView.builder(
+                            shrinkWrap: true,
+                            primary: true,
+                            itemCount: tilesData.length,
+                            physics: const NeverScrollableScrollPhysics(),
+                            gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                                childAspectRatio: MediaQuery.of(context).size.width / (MediaQuery.of(context).size.height / 2.2), // Change the height of the tiles
+                                crossAxisCount: 3,
+                            ),
+                            itemBuilder: (context, index) {
+                              return CustomGridTile(
+                                color: tilesData[index]['color'] as Color,
+                                title: tilesData[index]['title'].toString(),
+                                svgImage: "assets${tilesData[index]['svgImage'].toString()}",
+                                route: tilesData[index]["route"] as Widget,
+                              );
+                            },
+                          ),
+                        ],
                       ),
-                    ],
+                    ),
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),

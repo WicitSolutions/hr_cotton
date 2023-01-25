@@ -8,8 +8,9 @@ class CustomSelect extends StatelessWidget {
   final Map<String, String> items;
   final String title;
   final Function onConfirm;
+  final List<String> selectedValues;
 
-  const CustomSelect({Key? key, required this.items, required this.title, required this.onConfirm}) : super(key: key);
+  const CustomSelect({Key? key, required this.items, required this.title, required this.onConfirm, required this.selectedValues}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +26,7 @@ class CustomSelect extends StatelessWidget {
         items: dropDownData,
         // chipDisplay: MultiSelectChipDisplay.none(), // To hide Chips
         searchable: true,
+        initialValue: selectedValues,
         title: Text(
           title,
           style: const TextStyle(

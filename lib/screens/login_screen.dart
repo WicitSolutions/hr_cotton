@@ -1,9 +1,11 @@
 import 'package:flutter/services.dart';
-import 'package:hr_cotton/api/API.dart';
+import 'package:hr_cotton/api/api.dart';
+import 'package:localstorage/localstorage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:websafe_svg/websafe_svg.dart';
 
+import '../api/storageSharedPrefrences.dart';
 import '../colors/app_colors.dart';
-import '../routes/routes.dart';
 import '../styles/login_screen_styles.dart';
 import '../svgs/svg_images.dart';
 import 'package:flutter/material.dart';
@@ -16,8 +18,8 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  API instance = API();
-  String usernameTxt = "", passwordTxt = "";
+  Api instance = Api();
+  String usernameTxt = "admin@hrcottonusa.com", passwordTxt = "umair@123"; // TODO: make "" strings
   bool isLoggingIn = false;
   final txtUsernameController = TextEditingController();
   final txtPasswordController = TextEditingController();
@@ -25,17 +27,13 @@ class _LoginScreenState extends State<LoginScreen> {
   @override
   void initState() {
     super.initState();
+    print("login Screen");
     SystemChrome.setSystemUIOverlayStyle(const SystemUiOverlayStyle(
       statusBarColor: Color(0xFF0061A6),
       statusBarIconBrightness: Brightness.light,
     ));
     txtUsernameController.value = const TextEditingValue(text: "admin@hrcottonusa.com");
     txtPasswordController.value = const TextEditingValue(text: "umair@123");
-    setUpFilters();
-  }
-
-  void setUpFilters() async {
-    await instance.getFilters();
   }
 
   void showSnackBar(String message, IconData icon) {
@@ -60,7 +58,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void gotoHomeScreen(isAuthorized) {
     if (isAuthorized) {
-      Navigator.pushReplacementNamed(context, "/home");
+      Navigator.popAndPushNamed(context, "/home"); // pushReplacementNamed
       /*RoutingPage.goToNextPage(
                         context: context,
                         navigateTo: const HomeScreen(),
@@ -74,6 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
       txtPasswordController.clear();
     }
   }
+
   Widget buildTopPart({required BuildContext context}) {
     return Container(
       decoration: const BoxDecoration(
@@ -124,6 +123,7 @@ class _LoginScreenState extends State<LoginScreen> {
       ),
     );
   }
+
   Widget buildBottomPart() {
     return SizedBox(
       height: 230,
@@ -328,6 +328,8 @@ class _LoginScreenState extends State<LoginScreen> {
                                     setState(() {
                                       isLoggingIn = true;
                                     });
+                                    SPStorage.setIsLoggedIn(true);
+                                    SPStorage.printIsLoggedIn("Home Screen");
                                     await instance.getUser(usernameTxt, passwordTxt);
                                     gotoHomeScreen(instance.isAuthorized);
                                   },
